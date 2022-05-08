@@ -1,6 +1,6 @@
 // get the client
 const mysql = require('mysql2');
-
+const path = require('path');
 var config = {
   host: 'localhost',
   user: 'root',
@@ -48,25 +48,31 @@ function getTables(_callback){
 
 function createFiles(fileType,TABLE_U, TABLE_L, fields, IMPORTS){
   const fs = require('fs');
-  fs.mkdir(`./dist/${fileType.toLowerCase()}`, { recursive: true }, (err) => {
+  fs.mkdir(`${__dirname.split(path.sep).pop().split(path.sep).pop()}/dist/${fileType.toLowerCase()}`, { recursive: true }, (err) => {
     if (err) throw err;
 
-      fs.readFile(`./templates/${fileType.toLowerCase()}.luk`, 'utf8', (err, data) => {
+      fs.readFile(`${__dirname}/templates/${fileType.toLowerCase()}.luk`, 'utf8', (err, data) => {
+
+        console.log(err);
         var template = data;
 
         if(TABLE_U){
+          console.log(fileType)
           template = template.split("{TABLE_U}").join(TABLE_U)
         }
         if(TABLE_L){
+          console.log(fileType)
           template = template.split("{TABLE_L}").join(TABLE_L);
         }
         if(fields){
+          console.log(fileType)
           template = template.split("{FIELDS_VALUES}").join(fields.join("\n\t\t"));
         }
         if(IMPORTS){
           template = template.split("{IMPORTS}").join(IMPORTS.join(`\n\t\t`));
         }
-        fs.writeFile(`./dist/${fileType.toLowerCase()}/${TABLE_U||''}${(fileType.toLowerCase()!="api"?fileType:'')}.php`, template, (err) => {
+        console.log(__dirname.split(path.sep).pop());
+        fs.writeFile(`${__dirname.split(path.sep).pop().split(path.sep).pop()}/dist/${fileType.toLowerCase()}/${TABLE_U||''}${((fileType.toLowerCase()!="api" && fileType.toLowerCase()!="model")?fileType:'')}.php`, template, (err) => {
           if (err) throw err;
           console.log('The file has been saved!');
         });
@@ -78,7 +84,9 @@ function createFiles(fileType,TABLE_U, TABLE_L, fields, IMPORTS){
 function makeControllerFields(TABLE_U, columns){
   var fields = [];
   columns.forEach(column => {
-    fields.push(`$${TABLE_U}->${column} = $request->${column};`)
+    if(column !="id"){
+      fields.push(`$${TABLE_U}->${column} = $request->${column};`)
+    }
   });
   return fields;
 }
@@ -106,6 +114,8 @@ function generate(){
 
       imports.push(makeRouteReferences(TABLE_U))
       routes.push(makeRouteFields(TABLE_U, TABLE_L))
+
+      createFiles("Resource", TABLE_U);
 
       getColumn(table,(columns)=>{
         //Creating the Controllers
@@ -148,4 +158,8 @@ function run(configurations = {host:"localhost", user:'root',password:null, data
 }
 
 
-run()
+
+module.exports = {run};
+
+
+

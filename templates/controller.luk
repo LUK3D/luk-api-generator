@@ -30,6 +30,7 @@ class {TABLE_U}Controller extends Controller
         //
     }
 
+
     /**
      * Store a newly created resource in storage.
      *
@@ -39,11 +40,12 @@ class {TABLE_U}Controller extends Controller
     public function store(Request $request)
     {
         ${TABLE_L} = new {TABLE_U}();
-      
-        {FIELDS_VALUES}
 
-        if(${TABLE_L}->save()){
-            return new {TABLE_U}Resource(${TABLE_L});
+
+        $response = ${TABLE_L}->create($request->request->all());
+
+        if($response){
+            return new {TABLE_U}Resource($response);
         }
     }
 
@@ -82,10 +84,11 @@ class {TABLE_U}Controller extends Controller
     {
         ${TABLE_L} = {TABLE_U}::findOrFail($id);
 
-        if(${TABLE_L}->update(request()->all())){
+        if(${TABLE_L}->update($request->request->all())){
             return new {TABLE_U}Resource(${TABLE_L});
         }
     }
+    
 
     /**
      * Remove the specified resource from storage.
